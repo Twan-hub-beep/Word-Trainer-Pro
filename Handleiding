@@ -1,1 +1,9 @@
-Plak de Python code in een Python bestand en plak evt de woordjes in een textbestand genaamd alle_lijsten.txt <-- het is belangerijk dat precies dit de naam van het bestand is
+Hoe te 'installeren':
+Plak de Python code in een Python bestand
+Zorg dat je module Pygame hebt geïnstalleerd
+Run vervolgens het bestand en klik op 'Editor'
+Creëer een lijst en voeg een woord toe
+Sluit de Pygame window
+Ga naar bestanden en zoek naar het bestand 'alle_lijsten.txt', deze staat waarschijnlijk op dezelfde plaats als je Python bestand
+Verwijder alle tekst in dit bestand en plak alles van het woordjes bestand hierin
+Klaar!
