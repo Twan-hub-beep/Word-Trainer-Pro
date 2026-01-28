@@ -1178,3 +1178,9 @@ def hoofdmenu():
         klok.tick(FPS)
 
 if __name__ == "__main__":
+    # INITIALISATIE
+    woordenlijst = {}
+    laden_woorden() # Laad de dictionary uit woorden.txt
+
+    # START HET MENU
+    hoofdmenu()
