@@ -888,217 +888,146 @@ def game_flash():
 def editor_scherm():
     global alle_lijsten, actieve_lijst_namen
     running = True
-    geselecteerde_lijst = list(alle_lijsten.keys())[0] if alle_lijsten else None
     
-    # Input variabelen
+    # Start-instellingen
+    alle_namen = list(alle_lijsten.keys())
+    geselecteerde_lijst = alle_namen[0] if alle_namen else None
+    
     input_nl = ""
     input_en = ""
-    input_lijst_naam = geselecteerde_lijst if geselecteerde_lijst else ""
     actief_veld = "nl"
     
-    # SCROLL VARIABELEN
+    # SCROLL EN ZICHTBAARHEID
     scroll_woorden = 0
-    max_zichtbaar_woorden = 12 
-    
-    scroll_lijsten = 0
-    max_zichtbaar_lijsten = 9  # Aantal lijsten dat links in beeld past
+    max_zichtbaar_woorden = 12
 
     while running:
         scherm.fill((20, 20, 20))
         muis = pygame.mouse.get_pos()
         events = pygame.event.get()
         
-        # --- 1. TITEL ---
-        teken_tekst("WOORDEN & LIJSTEN BEHEREN", font_titel, GEEL, 400, 30, center=True)
+        teken_tekst("EDITOR & BEHEER", font_titel, GEEL, 400, 30, center=True)
 
-        # --- 2. LINKER KOLOM: LIJSTEN (MET SCROLL) ---
+        # --- 1. LINKER KOLOM: LIJSTEN ---
         pygame.draw.rect(scherm, GRIJS, (20, 70, 200, 420), border_radius=10)
+        teken_tekst("Je Lijsten", font_tekst, WIT, 30, 80)
         
-        alle_namen = list(alle_lijsten.keys())
-        teken_tekst(f"Lijsten ({len(alle_namen)})", font_tekst, WIT, 30, 80)
-        
-        # Scroll indicator lijsten
-        if len(alle_namen) > max_zichtbaar_lijsten:
-             teken_tekst(f"Scroll: {scroll_lijsten}-{min(scroll_lijsten+max_zichtbaar_lijsten, len(alle_namen))}", font_klein, (200,200,200), 130, 85)
-
-        y_lijst = 120
-        # Slice de lijsten op basis van scroll positie
-        zichtbare_lijsten = alle_namen[scroll_lijsten : scroll_lijsten + max_zichtbaar_lijsten]
-
-        for naam in zichtbare_lijsten:
-            l_rect = pygame.Rect(30, y_lijst, 180, 35)
-            l_kleur = GEEL if naam == geselecteerde_lijst else (100, 100, 100)
-            pygame.draw.rect(scherm, l_kleur, l_rect, border_radius=5)
+        y_as = 115
+        huidige_namen = list(alle_lijsten.keys())
+        for naam in huidige_namen[:10]:
+            l_rect = pygame.Rect(30, y_as, 150, 30)
+            kleur = GEEL if naam == geselecteerde_lijst else (100, 100, 100)
+            pygame.draw.rect(scherm, kleur, l_rect, border_radius=5)
+            teken_tekst(naam, font_klein, ZWART if naam == geselecteerde_lijst else WIT, 35, y_as + 5)
             
-            t_kleur = ZWART if naam == geselecteerde_lijst else WIT
-            teken_tekst(naam, font_klein, t_kleur, 40, y_lijst + 8)
-            
-            v_rect = pygame.Rect(185, y_lijst + 10, 15, 15)
+            v_rect = pygame.Rect(185, y_as + 7, 15, 15)
             v_kleur = GROEN if naam in actieve_lijst_namen else ROOD
             pygame.draw.rect(scherm, v_kleur, v_rect)
 
             for e in events:
                 if e.type == pygame.MOUSEBUTTONDOWN:
-                    if l_rect.collidepoint(e.pos): 
+                    if l_rect.collidepoint(e.pos):
                         geselecteerde_lijst = naam
-                        input_lijst_naam = naam
-                        scroll_woorden = 0 # Reset woord-scroll als je van lijst wisselt
+                        scroll_woorden = 0 # Reset scroll bij wisselen
                     if v_rect.collidepoint(e.pos):
                         if naam in actieve_lijst_namen: actieve_lijst_namen.remove(naam)
                         else: actieve_lijst_namen.append(naam)
-            y_lijst += 40
+            y_as += 35
 
-        btn_nieuwe_lijst = Knop("+ NIEUWE LIJST", 20, 510, 200, 40, BLAUW, "nieuw_lijst")
-        btn_nieuwe_lijst.hover = btn_nieuwe_lijst.rect.collidepoint(muis)
-        btn_nieuwe_lijst.teken(scherm)
+        btn_nieuw_lijst = Knop("+ NIEUWE LIJST", 20, 510, 200, 40, BLAUW, "n_l")
+        btn_nieuw_lijst.teken(scherm)
 
-        # --- 3. MIDDELSTE KOLOM: WOORDEN (MET SCROLL) ---
+        # --- 2. MIDDELSTE KOLOM: WOORDEN (MET SCROLL & TELLER) ---
         pygame.draw.rect(scherm, (40, 40, 40), (240, 70, 280, 480), border_radius=10)
         if geselecteerde_lijst:
-            woorden_items = list(alle_lijsten[geselecteerde_lijst].items())
-            totaal_woorden = len(woorden_items)
+            woorden = list(alle_lijsten[geselecteerde_lijst].items())
+            aantal = len(woorden)
+            teken_tekst(f"Inhoud ({aantal})", font_tekst, WIT, 250, 80)
             
-            teken_tekst(f"Inhoud ({totaal_woorden})", font_tekst, WIT, 250, 80)
+            y_w = 120
+            # Pak alleen de woorden die in de huidige scroll-view vallen
+            zichtbare_woorden = woorden[scroll_woorden : scroll_woorden + max_zichtbaar_woorden]
             
-            # Scroll indicator woorden
-            if totaal_woorden > max_zichtbaar_woorden:
-                teken_tekst(f"Scroll: {scroll_woorden}-{min(scroll_woorden+max_zichtbaar_woorden, totaal_woorden)}", font_klein, (200,200,200), 450, 85)
-
-            y_woord = 120
-            zichtbare_items = woorden_items[scroll_woorden : scroll_woorden + max_zichtbaar_woorden]
-
-            for nl, en in zichtbare_items:
-                w_rect = pygame.Rect(250, y_woord, 260, 30)
+            for nl, en in zichtbare_woorden:
+                w_rect = pygame.Rect(250, y_w, 260, 30)
                 pygame.draw.rect(scherm, (60, 60, 60), w_rect)
-                teken_tekst(f"{nl} = {en}", font_klein, WIT, 260, y_woord + 5)
+                teken_tekst(f"{nl} = {en}", font_klein, WIT, 260, y_w + 5)
                 
-                d_rect = pygame.Rect(485, y_woord + 5, 20, 20)
+                d_rect = pygame.Rect(485, y_w + 5, 20, 20)
                 pygame.draw.rect(scherm, ROOD, d_rect)
-                
                 for e in events:
                     if e.type == pygame.MOUSEBUTTONDOWN and d_rect.collidepoint(e.pos):
                         del alle_lijsten[geselecteerde_lijst][nl]
                         opslaan_woorden()
-                        if scroll_woorden > 0 and len(alle_lijsten[geselecteerde_lijst]) <= scroll_woorden:
-                            scroll_woorden -= 1
-                y_woord += 35
+                y_w += 35
 
-        # --- 4. RECHTER KOLOM: ACTIES ---
-        teken_tekst("Lijst Naam", font_tekst, GEEL, 540, 80)
-        rect_lijst_naam = pygame.Rect(540, 110, 220, 35)
-        pygame.draw.rect(scherm, WIT if actief_veld == "lijst_naam" else GRIJS, rect_lijst_naam)
-        teken_tekst(input_lijst_naam, font_klein, ZWART, 550, 118)
-
-        teken_tekst("Nieuw Woord", font_tekst, GEEL, 540, 170)
+        # --- 3. RECHTER KOLOM: INPUT & WIS KNOP ---
+        teken_tekst("Voeg woord toe", font_tekst, GEEL, 540, 160)
         rect_nl = pygame.Rect(540, 200, 220, 35)
         rect_en = pygame.Rect(540, 260, 220, 35)
-        
         pygame.draw.rect(scherm, WIT if actief_veld == "nl" else GRIJS, rect_nl)
         pygame.draw.rect(scherm, WIT if actief_veld == "en" else GRIJS, rect_en)
-        
         teken_tekst(f"NL: {input_nl}", font_klein, ZWART, 550, 208)
         teken_tekst(f"EN: {input_en}", font_klein, ZWART, 550, 268)
-        
-        btn_voeg_toe = Knop("VOEG TOE [ENTER]", 540, 310, 220, 40, GROEN, "add")
-        btn_voeg_toe.hover = btn_voeg_toe.rect.collidepoint(muis)
+
+        btn_voeg_toe = Knop("VOEG WOORD TOE", 540, 310, 220, 40, GROEN, "add")
         btn_voeg_toe.teken(scherm)
 
-        btn_del_lijst = Knop("WIS DEZE LIJST", 540, 510, 220, 40, DONKERROOD, "del")
-        btn_del_lijst.hover = btn_del_lijst.rect.collidepoint(muis)
-        btn_del_lijst.teken(scherm)
+        btn_wis_lijst = Knop("WIS DEZE LIJST", 540, 510, 220, 40, DONKERROOD, "wis")
+        btn_wis_lijst.teken(scherm)
 
-        # --- 5. EVENTS ---
+        # --- 4. ALGEMENE EVENTS ---
         for e in events:
             if e.type == pygame.QUIT: pygame.quit(); sys.exit()
             
-            # --- SCROLL LOGICA (SLIMME DETECTIE) ---
-            if e.type == pygame.MOUSEWHEEL:
-                # 1. Scrollen in LIJSTEN (Linkerkant: muis X < 230)
-                if muis[0] < 230:
-                    scroll_lijsten -= e.y
-                    max_scroll_lijst = max(0, len(alle_lijsten) - max_zichtbaar_lijsten)
-                    scroll_lijsten = max(0, min(scroll_lijsten, max_scroll_lijst))
-
-                # 2. Scrollen in WOORDEN (Midden: muis X tussen 240 en 520)
-                elif 240 < muis[0] < 520 and geselecteerde_lijst:
-                    scroll_woorden -= e.y 
-                    max_scroll_woord = max(0, len(alle_lijsten[geselecteerde_lijst]) - max_zichtbaar_woorden)
-                    scroll_woorden = max(0, min(scroll_woorden, max_scroll_woord))
+            # SCROLL LOGICA
+            if e.type == pygame.MOUSEWHEEL and geselecteerde_lijst:
+                # Alleen scrollen als de muis boven het middenvak is
+                if 240 < muis[0] < 520:
+                    totaal_w = len(alle_lijsten[geselecteerde_lijst])
+                    scroll_woorden = max(0, min(scroll_woorden - e.y, totaal_w - max_zichtbaar_woorden))
 
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_ESCAPE: running = False
-                
-                # TAB wisselt velden (zonder tekst input)
-                if e.key == pygame.K_TAB: 
-                    if actief_veld == "nl": actief_veld = "en"
-                    elif actief_veld == "en": actief_veld = "lijst_naam"
-                    else: actief_veld = "nl"
-                    continue 
-
+                if e.key == pygame.K_TAB:
+                    actief_veld = "en" if actief_veld == "nl" else "nl"
                 if e.key == pygame.K_BACKSPACE:
                     if actief_veld == "nl": input_nl = input_nl[:-1]
-                    elif actief_veld == "en": input_en = input_en[:-1]
-                    elif actief_veld == "lijst_naam": input_lijst_naam = input_lijst_naam[:-1]
-                
+                    else: input_en = input_en[:-1]
                 elif e.key == pygame.K_RETURN:
-                    if actief_veld == "lijst_naam":
-                        if input_lijst_naam and input_lijst_naam not in alle_lijsten:
-                            alle_lijsten[input_lijst_naam] = alle_lijsten.pop(geselecteerde_lijst)
-                            if geselecteerde_lijst in actieve_lijst_namen:
-                                actieve_lijst_namen.remove(geselecteerde_lijst)
-                                actieve_lijst_namen.append(input_lijst_naam)
-                            geselecteerde_lijst = input_lijst_naam
-                            opslaan_woorden()
-                    else: 
-                        if input_nl and input_en and geselecteerde_lijst:
-                            alle_lijsten[geselecteerde_lijst][input_nl] = input_en
-                            input_nl, input_en = "", ""
-                            opslaan_woorden()
-                            actief_veld = "nl"
-                            # Auto-scroll woorden
-                            totaal = len(alle_lijsten[geselecteerde_lijst])
-                            if totaal > max_zichtbaar_woorden:
-                                scroll_woorden = totaal - max_zichtbaar_woorden
+                    # Enter werkt nog steeds als snelkoppeling
+                    if input_nl and input_en and geselecteerde_lijst:
+                        alle_lijsten[geselecteerde_lijst][input_nl] = input_en
+                        input_nl, input_en = "", ""
+                        opslaan_woorden()
                 else:
                     if e.key != pygame.K_TAB:
                         if actief_veld == "nl": input_nl += e.unicode
-                        elif actief_veld == "en": input_en += e.unicode
-                        elif actief_veld == "lijst_naam": input_lijst_naam += e.unicode
-
+                        else: input_en += e.unicode
+            
             if e.type == pygame.MOUSEBUTTONDOWN:
                 if rect_nl.collidepoint(e.pos): actief_veld = "nl"
                 if rect_en.collidepoint(e.pos): actief_veld = "en"
-                if rect_lijst_naam.collidepoint(e.pos): actief_veld = "lijst_naam"
                 
-                if btn_nieuwe_lijst.rect.collidepoint(e.pos):
-                    nieuwe_naam = f"Lijst {len(alle_lijsten)+1}"
-                    counter = 1
-                    while nieuwe_naam in alle_lijsten:
-                        nieuwe_naam = f"Lijst {len(alle_lijsten)+1}_{counter}"
-                        counter += 1     
-                    alle_lijsten[nieuwe_naam] = {}
-                    geselecteerde_lijst = nieuwe_naam
-                    input_lijst_naam = nieuwe_naam
-                    opslaan_woorden()
-                    
-                    # Auto-scroll naar de nieuwe lijst
-                    scroll_lijsten = max(0, len(alle_lijsten) - max_zichtbaar_lijsten)
-                    scroll_woorden = 0
-
+                # Knop: Woord Toevoegen
                 if btn_voeg_toe.rect.collidepoint(e.pos):
                     if input_nl and input_en and geselecteerde_lijst:
                         alle_lijsten[geselecteerde_lijst][input_nl] = input_en
                         input_nl, input_en = "", ""
                         opslaan_woorden()
-                        actief_veld = "nl"
 
-                if btn_del_lijst.rect.collidepoint(e.pos):
-                    if len(alle_lijsten) > 1:
-                        del alle_lijsten[geselecteerde_lijst]
-                        geselecteerde_lijst = list(alle_lijsten.keys())[0]
-                        input_lijst_naam = geselecteerde_lijst
-                        scroll_lijsten = 0 # Reset scroll om crash te voorkomen
-                        opslaan_woorden()
+                # Knop: Nieuwe Lijst
+                if btn_nieuw_lijst.rect.collidepoint(e.pos) and len(alle_lijsten) < 10:
+                    nieuwe_naam = f"Lijst {len(alle_lijsten)+1}"
+                    alle_lijsten[nieuwe_naam] = {}
+                    geselecteerde_lijst = nieuwe_naam
+                    opslaan_woorden()
+
+                # Knop: Wis Lijst
+                if btn_wis_lijst.rect.collidepoint(e.pos) and len(alle_lijsten) > 1:
+                    del alle_lijsten[geselecteerde_lijst]
+                    geselecteerde_lijst = list(alle_lijsten.keys())[0]
+                    opslaan_woorden()
 
         pygame.display.flip()
         klok.tick(FPS)
