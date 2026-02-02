@@ -612,9 +612,6 @@ def game_schieten():
 def game_toets():
     global alle_lijsten, actieve_lijst_namen
     
-    # 1. Update de actieve woorden op basis van vinkjes in de editor
-    update_actieve_woorden()
-    
     if not woordenlijst:
         scherm.fill(ZWART)
         teken_tekst("GEEN LIJSTEN GESELECTEERD", font_titel, ROOD, 400, 250, center=True)
@@ -988,7 +985,9 @@ def editor_scherm():
                     scroll_woorden = max(0, min(scroll_woorden - e.y, totaal_w - max_zichtbaar_woorden))
 
             if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_ESCAPE: running = False
+                if e.key == pygame.K_ESCAPE: 
+                    running = False
+                    update_actieve_woorden()
                 if e.key == pygame.K_TAB:
                     actief_veld = "en" if actief_veld == "nl" else "nl"
                 if e.key == pygame.K_BACKSPACE:
